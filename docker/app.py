@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_compress import Compress
 from flask_cors import cross_origin
-from scipy.optimize import minimize, Bounds
+from scipy.optimize import minimize, Bounds, dual_annealing
 import numpy as np
 
 app = Flask(__name__)
@@ -25,9 +25,10 @@ def solve_eq():
         return (res ** 2).sum()
 
     r = None
-    for _ in range(3):
+    for _ in range(2):
         p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
-        new_r = minimize(loss, p0, bounds=Bounds(0, 1), options={"max_iter": 400})
+        new_r = dual_annealing(loss, bounds=[(0,1)]*len(p0))
+        #new_r = minimize(loss, p0, bounds=Bounds(0, 1))
         if r is None:
             r = new_r
         elif new_r.fun < r.fun:
