@@ -25,7 +25,7 @@ def solve_eq():
         return (res ** 2).sum()
 
     r = None
-    for _ in range(2):
+    for _ in range(1):
         p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
         new_r = dual_annealing(loss, bounds=[(0,1)]*len(p0))
         #new_r = minimize(loss, p0, bounds=Bounds(0, 1))
