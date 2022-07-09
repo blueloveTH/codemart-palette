@@ -27,7 +27,8 @@ def solve_eq():
     cmyk_A = normalizeCmyk(request.json['cmyk_A'])
     X = np.array([normalizeCmyk(cpnt) for cpnt in cmyk_cpnts]).transpose()
 
-    def calc_mixed(p): 
+    def calc_mixed(p):
+        p = p / (p.sum() + 0.01)
         return normalizeCmyk(X @ p)
 
     def loss(p):
