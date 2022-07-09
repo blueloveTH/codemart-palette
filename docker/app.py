@@ -27,7 +27,7 @@ def solve_eq():
     r = None
     for _ in range(1):
         p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
-        new_r = dual_annealing(loss, bounds=[(0,1)]*len(p0), maxiter=800)
+        new_r = dual_annealing(loss, bounds=[(0,1)]*len(p0), initial_temp=8000)
         # new_r = least_squares(loss, x0=p0, bounds=(0, 1))
         #new_r = minimize(loss, p0, bounds=Bounds(0, 1))
         if r is None:
