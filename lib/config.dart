@@ -1,4 +1,3 @@
 List<String> cpntLabels = ['甲', '乙', '丙', '丁', '戊'];
 
-const String apiUrl =
-    "https://codemar-palette-upwork-mucstayjlu.cn-hongkong.fcapp.run";
+const String apiUrl = "https://codemart-palette.bluel.fun";

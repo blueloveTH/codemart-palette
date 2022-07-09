@@ -36,7 +36,7 @@ def solve_eq():
 
     r = None
     for _ in range(1):
-        new_r = dual_annealing(loss, bounds=[(0,1)]*len(cmyk_cpnts))
+        new_r = dual_annealing(loss, bounds=[(0,1)]*len(cmyk_cpnts), maxiter=600)
         #p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
         # new_r = least_squares(loss, x0=p0, bounds=(0, 1))
         #new_r = minimize(loss, p0, bounds=Bounds(0, 1))
