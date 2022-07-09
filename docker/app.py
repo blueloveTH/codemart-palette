@@ -24,7 +24,7 @@ def solve_eq():
         mixed = mixed.clip(min=0, max=1)
         black = np.min(mixed[:3])
         mixed[:3] -= black
-        mixed[4] += black
+        mixed[3] += black
         return mixed.clip(min=0, max=1)
 
     def loss(p):
