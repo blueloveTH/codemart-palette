@@ -22,7 +22,7 @@ def solve_eq():
     def calc_mixed(p):
         mixed = X @ p
         mixed = mixed.clip(min=0, max=1)
-        black = np.max(mixed[:3])
+        black = np.min(mixed[:3])
         mixed[:3] -= black
         mixed[4] += black
         return mixed.clip(min=0, max=1)
