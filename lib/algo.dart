@@ -42,7 +42,7 @@ class ColorMixModel {
   }
 
   static List<double> toCmyk01(Color c) {
-    return c.toCmykColor().toList().map((e) => e / 100).toList();
+    return c.toCmykColor().toList().map((e) => e * 0.01).toList();
   }
 
   Future getPercents() async {

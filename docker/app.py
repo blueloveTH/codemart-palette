@@ -17,8 +17,7 @@ def normalizeCmyk(cmyk) -> np.ndarray:
         cmyk = np.array(cmyk)
     cmyk = cmyk.clip(min=0, max=1)
     black = np.min(cmyk[:3])
-    cmyk[:3] -= black
-    cmyk[3] += black
+    cmyk += np.array([-black, -black, -black, black])
     return cmyk.clip(min=0, max=1)
 
 @app.route("/solve_eq", methods=["POST"])
@@ -28,9 +27,8 @@ def solve_eq():
     cmyk_A = normalizeCmyk(request.json['cmyk_A'])
     X = np.array([normalizeCmyk(cpnt) for cpnt in cmyk_cpnts]).transpose()
 
-    def calc_mixed(p):
-        mixed = normalizeCmyk(X @ p)
-        return mixed.clip(min=0, max=1)
+    def calc_mixed(p): 
+        return normalizeCmyk(X @ p)
 
     def loss(p):
         res = calc_mixed(p) - cmyk_A
@@ -38,8 +36,8 @@ def solve_eq():
 
     r = None
     for _ in range(1):
-        p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
-        new_r = dual_annealing(loss, bounds=[(0,1)]*len(p0))
+        new_r = dual_annealing(loss, bounds=[(0,1)]*len(cmyk_cpnts))
+        #p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
         # new_r = least_squares(loss, x0=p0, bounds=(0, 1))
         #new_r = minimize(loss, p0, bounds=Bounds(0, 1))
         if r is None:
