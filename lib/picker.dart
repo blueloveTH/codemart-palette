@@ -4,6 +4,7 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import 'package:palette/algo.dart';
 import 'package:palette/colordb.dart';
 import 'package:provider/provider.dart';
 

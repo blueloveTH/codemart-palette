@@ -12,19 +12,24 @@ Compress(app)
 def hello_world():
     return "<p>Hello, World!</p>"
 
+def normalizeCmyk(cmyk) -> np.ndarray:
+    if not isinstance(cmyk, np.ndarray):
+        cmyk = np.array(cmyk)
+    cmyk = cmyk.clip(min=0, max=1)
+    black = np.min(cmyk[:3])
+    cmyk[:3] -= black
+    cmyk[3] += black
+    return cmyk.clip(min=0, max=1)
+
 @app.route("/solve_eq", methods=["POST"])
 @cross_origin()
 def solve_eq():
     cmyk_cpnts = request.json['cmyk_cpnts']
-    cmyk_A = request.json['cmyk_A']
-    X = np.array(cmyk_cpnts).transpose()
+    cmyk_A = normalizeCmyk(request.json['cmyk_A'])
+    X = np.array([normalizeCmyk(cpnt) for cpnt in cmyk_cpnts]).transpose()
 
     def calc_mixed(p):
-        mixed = X @ p
-        mixed = mixed.clip(min=0, max=1)
-        black = np.min(mixed[:3])
-        mixed[:3] -= black
-        mixed[3] += black
+        mixed = normalizeCmyk(X @ p)
         return mixed.clip(min=0, max=1)
 
     def loss(p):
