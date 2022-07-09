@@ -18,16 +18,23 @@ def solve_eq():
     cmyk_cpnts = request.json['cmyk_cpnts']
     cmyk_A = request.json['cmyk_A']
     X = np.array(cmyk_cpnts).transpose()
-    def loss(p):
+
+    def calc_mixed(p):
         mixed = X @ p
         mixed = mixed.clip(min=0, max=1)
-        res = (mixed - cmyk_A)
+        black = np.max(mixed[:3])
+        mixed[:3] -= black
+        mixed[4] += black
+        return mixed.clip(min=0, max=1)
+
+    def loss(p):
+        res = calc_mixed(p) - cmyk_A
         return (res ** 2).sum()
 
     r = None
     for _ in range(1):
         p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
-        new_r = dual_annealing(loss, bounds=[(0,1)]*len(p0), initial_temp=9999)
+        new_r = dual_annealing(loss, bounds=[(0,1)]*len(p0))
         # new_r = least_squares(loss, x0=p0, bounds=(0, 1))
         #new_r = minimize(loss, p0, bounds=Bounds(0, 1))
         if r is None:
@@ -39,7 +46,7 @@ def solve_eq():
         "r.success": r.success,
         "r.fun": float(r.fun),
         "r.x": list(r.x.astype("float")),
-        "mixed": list((X @ r.x).clip(min=0, max=1).astype('float'))
+        "mixed": list(calc_mixed(r.x).astype('float'))
     })
     
 
