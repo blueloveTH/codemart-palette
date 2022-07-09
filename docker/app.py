@@ -25,9 +25,9 @@ def solve_eq():
         return (res ** 2).sum()
 
     r = None
-    for _ in range(4):
+    for _ in range(3):
         p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
-        new_r = minimize(loss, p0, bounds=Bounds(0, 1))
+        new_r = minimize(loss, p0, bounds=Bounds(0, 1), options={"max_iter": 400})
         if r is None:
             r = new_r
         elif new_r.fun < r.fun:

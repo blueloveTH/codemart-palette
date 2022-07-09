@@ -1,12 +1,10 @@
-import 'dart:math';
-import 'dart:typed_data';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import 'package:palette/colordb.dart';
 import 'package:provider/provider.dart';
 
 class MultiCpntField extends StatelessWidget {
@@ -14,10 +12,23 @@ class MultiCpntField extends StatelessWidget {
   final List<Object> values;
   final List<TextEditingController> controllers = [];
   final bool fixedWidth;
+  final int maxLength;
+
+  final void Function(MultiCpntField field) onEditComplete;
+  final Color Function(MultiCpntField field) toColor;
 
   int get fieldLength => values.length;
 
-  MultiCpntField(this.label, this.values, {this.fixedWidth = false}) {
+  String getText(int i) => controllers[i].text;
+  int getInt(int i) => int.parse(getText(i));
+  List<int> getValueList() =>
+      controllers.map<int>((e) => int.parse(e.text)).toList();
+
+  MultiCpntField(this.label, this.values,
+      {this.fixedWidth = false,
+      required this.toColor,
+      required this.onEditComplete,
+      this.maxLength = 3}) {
     for (int i = 0; i < fieldLength; i++) {
       String text = values[i].toString();
       if (values[i] is num) text = (values[i] as num).round().toString();
@@ -42,13 +53,13 @@ class MultiCpntField extends StatelessWidget {
               padding: EdgeInsets.only(right: 2),
               child: CupertinoTextField(
                 controller: controllers[i],
-                maxLength: 3,
+                maxLength: maxLength,
                 enableIMEPersonalizedLearning: false,
                 keyboardType: TextInputType.number,
                 autocorrect: false,
                 style: TextStyle(fontSize: 14),
                 padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                //decoration: BoxDecoration(border: Border.all()),
+                onEditingComplete: () => onEditComplete(this),
               ),
             ),
         ],
@@ -59,8 +70,17 @@ class MultiCpntField extends StatelessWidget {
 
 class PickerValueTable extends StatelessWidget {
   final Color initialColor;
+  final void Function(Color c)? onColorEdit;
 
-  PickerValueTable({required this.initialColor});
+  PickerValueTable({required this.initialColor, this.onColorEdit});
+
+  void refreshColor(MultiCpntField field) {
+    try {
+      Color c = field.toColor(field);
+      onColorEdit?.call(c);
+      // ignore: empty_catches
+    } catch (e) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,13 +89,33 @@ class PickerValueTable extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        MultiCpntField("RGB", rgb.toList()),
-        MultiCpntField("CMYK", rgb.toCmykColor().toList()),
-        MultiCpntField("HSV", [hsv.hue, hsv.saturation * 100, hsv.value * 100]),
+        MultiCpntField(
+          "RGB",
+          rgb.toList(),
+          toColor: (field) => RgbColor.fromList(field.getValueList()),
+          onEditComplete: refreshColor,
+        ),
+        MultiCpntField(
+          "CMYK",
+          rgb.toCmykColor().toList(),
+          toColor: (field) => CmykColor.fromList(field.getValueList()),
+          onEditComplete: refreshColor,
+        ),
+        MultiCpntField(
+          "HSV",
+          [hsv.hue, hsv.saturation * 100, hsv.value * 100],
+          toColor: (field) => HSVColor.fromAHSV(1.0, field.getInt(0) * 1.0,
+                  field.getInt(1) * 0.01, field.getInt(2) * 0.01)
+              .toColor(),
+          onEditComplete: refreshColor,
+        ),
         MultiCpntField(
           "HEX",
           [rgb.hex],
           fixedWidth: true,
+          maxLength: 7,
+          toColor: (field) => RgbColor.fromHex(field.getText(0)),
+          onEditComplete: refreshColor,
         ),
       ],
     );
@@ -153,6 +193,8 @@ class PickerDialogState extends State<PickerDialog> {
                   child: Consumer<TextEditingController>(
                     builder: (context, value, child) => PickerValueTable(
                       initialColor: currentColor,
+                      onColorEdit: (c) =>
+                          textController.text = c.toRgbColor().hex,
                     ),
                   ),
                 ),
@@ -179,6 +221,15 @@ class PickerDialogState extends State<PickerDialog> {
                           }
                         },
                         icon: Icon(Icons.camera_alt_outlined)),
+                    IconButton(
+                        onPressed: () async {
+                          Color? color = await Navigator.push(context,
+                              MaterialPageRoute(builder: (_) => ColorDB()));
+                          if (color != null) {
+                            textController.text = color.toRgbColor().hex;
+                          }
+                        },
+                        icon: Icon(Icons.palette_outlined)),
                     Expanded(
                         child: SizedBox(
                       width: 1,

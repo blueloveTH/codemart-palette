@@ -93,10 +93,16 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("调色盘")),
+      appBar: AppBar(
+        title: Text("调色盘"),
+        actions: [
+          TextButton(onPressed: () {}, child: Text("导入")),
+          TextButton(onPressed: () {}, child: Text("导出")),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Column(
+        child: ListView(
           children: [
             Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
