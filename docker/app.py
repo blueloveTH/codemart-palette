@@ -28,7 +28,7 @@ def solve_eq():
     X = np.array([normalizeCmyk(cpnt) for cpnt in cmyk_cpnts]).transpose()
 
     def calc_mixed(p):
-        p = p / (p.sum() + 0.01)
+        p = p / (p.sum() + 1e-3)
         return normalizeCmyk(X @ p)
 
     def loss(p):
@@ -45,6 +45,8 @@ def solve_eq():
             r = new_r
         elif new_r.fun < r.fun:
             r = new_r
+
+    r.x = r.x / (r.x.sum() + 1e-3)
 
     return jsonify({
         "r.success": r.success,
