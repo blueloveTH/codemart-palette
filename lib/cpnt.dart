@@ -1,29 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:palette/algo.dart';
+import 'package:palette/picker.dart';
 
 class ColorCpnt extends StatefulWidget {
   final double size;
-  final Widget? child;
+  final String label;
+  final String dataKey;
 
-  const ColorCpnt({Key? key, required this.size, this.child}) : super(key: key);
+  const ColorCpnt(this.dataKey,
+      {Key? key, required this.size, required this.label})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ColorCpntState();
 }
 
 class ColorCpntState extends State<ColorCpnt> {
-  Color color = Colors.black;
+  Color get color => ColorMixModel.instance.getColor(widget.dataKey);
 
   void pickColor() async {
-    Color? newColor = await Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => CpntPicker(
-                  initialColor: color,
-                )));
+    Color? newColor = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PickerDialog(
+          initialColor: color,
+        );
+      },
+    );
+
     if (newColor == null) return;
 
     setState(() {
-      color = newColor;
+      ColorMixModel.instance.setColor(widget.dataKey, newColor);
     });
   }
 
@@ -35,29 +43,18 @@ class ColorCpntState extends State<ColorCpnt> {
         width: widget.size,
         height: widget.size,
         margin: EdgeInsets.all(widget.size / 8),
-        decoration:
-            BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-        child: Center(child: widget.child),
+        decoration: BoxDecoration(
+            color: color,
+            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(8)),
+        child: Center(
+            child: Text(
+          widget.label,
+          style: TextStyle(
+              color:
+                  color.computeLuminance() > 0.5 ? Colors.black : Colors.white),
+        )),
       ),
-    );
-  }
-}
-
-class CpntPicker extends StatefulWidget {
-  final Color initialColor;
-
-  CpntPicker({required this.initialColor});
-
-  @override
-  State<StatefulWidget> createState() => CpntPickerState();
-}
-
-class CpntPickerState extends State<CpntPicker> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("取色页面")),
-      body: Column(children: []),
     );
   }
 }
