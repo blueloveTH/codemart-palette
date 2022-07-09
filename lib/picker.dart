@@ -1,7 +1,11 @@
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -92,6 +96,27 @@ class PickerDialogState extends State<PickerDialog> {
 
   late Color currentColor = widget.initialColor;
 
+  Future<Color?> pickColorFromImage(
+      BuildContext context, ImageSource src) async {
+    XFile? file = await ImagePicker().pickImage(source: src);
+    if (file == null) return null;
+    var image = img.decodeImage(await file.readAsBytes());
+    if (image == null) return null;
+    int abgr = image.getPixel(image.width ~/ 2, image.height ~/ 2);
+
+    // #AABBGGRR
+    // #AA000000
+    // #00RR0000
+    // #0000GG00
+    // #000000BB
+    int argb = 0xff000000 |
+        ((abgr << 16) & 0x00ff0000) |
+        ((abgr) & 0x0000ff00) |
+        ((abgr >> 16) & 0x000000ff);
+
+    return Color(argb);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -135,15 +160,23 @@ class PickerDialogState extends State<PickerDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                        onPressed: () {
-                          ImagePicker().pickImage(source: ImageSource.gallery);
+                        onPressed: () async {
+                          var color = await pickColorFromImage(
+                              context, ImageSource.gallery);
+                          if (color != null) {
+                            textController.text = color.toRgbColor().hex;
+                          }
                         },
                         icon: Icon(
                           Icons.image_outlined,
                         )),
                     IconButton(
-                        onPressed: () {
-                          ImagePicker().pickImage(source: ImageSource.camera);
+                        onPressed: () async {
+                          var color = await pickColorFromImage(
+                              context, ImageSource.camera);
+                          if (color != null) {
+                            textController.text = color.toRgbColor().hex;
+                          }
                         },
                         icon: Icon(Icons.camera_alt_outlined)),
                     Expanded(

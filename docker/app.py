@@ -18,15 +18,20 @@ def solve_eq():
     cmyk_cpnts = request.json['cmyk_cpnts']
     cmyk_A = request.json['cmyk_A']
     X = np.array(cmyk_cpnts).transpose()
-    p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
-
     def loss(p):
         mixed = X @ p
         mixed = mixed.clip(min=0, max=1)
         res = (mixed - cmyk_A)
         return (res ** 2).sum()
 
-    r = minimize(loss, p0, bounds=Bounds(0, 1))
+    r = None
+    for _ in range(8):
+        p0 = np.random.uniform(0, 1, len(cmyk_cpnts))
+        new_r = minimize(loss, p0, bounds=Bounds(0, 1))
+        if r is None:
+            r = new_r
+        elif new_r.fun < r.fun:
+            r = new_r
 
     return jsonify({
         "r.success": r.success,

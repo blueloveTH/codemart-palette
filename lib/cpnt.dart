@@ -6,9 +6,10 @@ class ColorCpnt extends StatefulWidget {
   final double size;
   final String label;
   final String dataKey;
+  final bool enabled;
 
   const ColorCpnt(this.dataKey,
-      {Key? key, required this.size, required this.label})
+      {Key? key, required this.size, required this.label, this.enabled = true})
       : super(key: key);
 
   @override
@@ -38,7 +39,7 @@ class ColorCpntState extends State<ColorCpnt> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: pickColor,
+      onTap: widget.enabled ? pickColor : null,
       child: Container(
         width: widget.size,
         height: widget.size,

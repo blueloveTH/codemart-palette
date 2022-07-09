@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:palette/algo.dart';
 import 'package:palette/config.dart';
 import 'package:palette/cpnt.dart';
+import 'package:palette/loading.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,7 +15,7 @@ class HomePageState extends State<HomePage> {
   Color colorA = Colors.white;
 
   Widget buildColorCpnts(BuildContext context) {
-    double size = 48;
+    double size = 64;
 
     return Column(
       children: [
@@ -28,16 +30,19 @@ class HomePageState extends State<HomePage> {
               const SizedBox(
                 width: 8,
               ),
-              SizedBox(
-                height: size,
+              Container(
+                height: size * 0.8,
                 width: size * 1.5,
-                child: TextFormField(
-                  initialValue: "100.00",
-                  decoration: const InputDecoration(
-                    suffix: Text("%"),
-                  ),
-                  autofocus: false,
-                  keyboardType: TextInputType.number,
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  border: Border.all(),
+                ),
+                child: Text(
+                  (ColorMixModel.instance.cachedPercents[i] * 100)
+                          .toStringAsFixed(2) +
+                      " %",
+                  style: TextStyle(fontSize: 17),
                 ),
               ),
             ],
@@ -50,11 +55,37 @@ class HomePageState extends State<HomePage> {
     return Column(
       children: [
         ColorCpnt(
+          "B",
+          size: 100,
+          label: "B",
+          enabled: false,
+        ),
+        Text("RGB色差：\n" +
+            ColorMixModel.instance.chromaticAberration().toString()),
+      ],
+    );
+  }
+
+  Widget buildTargetColor(BuildContext context) {
+    return Column(
+      children: [
+        ColorCpnt(
           "A",
-          size: 64,
+          size: 100,
           label: "A",
         ),
-        ElevatedButton(onPressed: () {}, child: Text("计算配比")),
+        ElevatedButton(
+            onPressed: () async {
+              showLoadingDialog(context);
+              try {
+                await ColorMixModel.instance.getPercents();
+                setState(() {});
+              } finally {
+                Navigator.pop(context);
+              }
+            },
+            child: Text("计算配比")),
+        buildMixedColor(context),
       ],
     );
   }
@@ -72,12 +103,8 @@ class HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   buildColorCpnts(context),
-                  buildMixedColor(context),
+                  buildTargetColor(context),
                 ]),
-            /*Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: PickerValueTable(initialColor: ColorMixModel.instance.A),
-            ),*/
           ],
         ),
       ),
