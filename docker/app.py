@@ -8,6 +8,10 @@ app = Flask(__name__, static_folder='web', static_url_path='')
 
 Compress(app)
 
+@app.route("/")
+def index():
+    return app.send_static_file('index.html')
+
 def normalizeCmyk(cmyk) -> np.ndarray:
     if not isinstance(cmyk, np.ndarray):
         cmyk = np.array(cmyk)
