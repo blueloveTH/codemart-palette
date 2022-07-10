@@ -14,12 +14,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: globalKey,
-      title: '调色盘',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
       home: HomePage(),
+      supportedLocales: [
+        const Locale('zh', 'CN'),
+        const Locale('en', 'US'),
+      ],
     );
   }
 }
