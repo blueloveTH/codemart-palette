@@ -138,7 +138,7 @@ class PickerDialogState extends State<PickerDialog> {
 
   Future<Color?> pickColorFromImage(
       BuildContext context, ImageSource src) async {
-    XFile? file = await ImagePicker().pickImage(source: src);
+    XFile? file = await ImagePicker().pickImage(source: src, maxHeight: 600, maxWidth: 300);
     if (file == null) return null;
     var image = img.decodeImage(await file.readAsBytes());
     if (image == null) return null;
