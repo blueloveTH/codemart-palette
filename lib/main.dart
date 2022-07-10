@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:palette/config.dart';
 import 'package:palette/home.dart';
 
 void main() {
@@ -12,6 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: globalKey,
       title: '调色盘',
       theme: ThemeData(
         primarySwatch: Colors.blue,

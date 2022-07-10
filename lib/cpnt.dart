@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:palette/algo.dart';
+import 'package:palette/model.dart';
 import 'package:palette/picker.dart';
 
 class ColorCpnt extends StatefulWidget {

@@ -4,13 +4,9 @@ from flask_cors import cross_origin
 from scipy.optimize import minimize, Bounds, dual_annealing, least_squares
 import numpy as np
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='web', static_url_path='')
 
 Compress(app)
-
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
 
 def normalizeCmyk(cmyk) -> np.ndarray:
     if not isinstance(cmyk, np.ndarray):
