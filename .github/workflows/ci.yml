@@ -33,7 +33,7 @@ jobs:
           flutter pub get
           flutter config --enable-web
           flutter build web
-          cp build/web docker/web
+          cp -r build/web docker/web
       -
         name: Login to ACR
         uses: docker/login-action@v1
