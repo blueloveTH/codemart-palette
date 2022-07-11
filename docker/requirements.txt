@@ -1,5 +1,5 @@
 flask
 flask_cors
-flask_compress
+flask_compress==1.11
 scipy
 numpy
