@@ -62,10 +62,17 @@ class ColorMixModel {
     return c.toCmykColor().toList().map((e) => e * 0.01).toList();
   }
 
+  static final List<String> supportedAlgos = [
+    'dual_annealing',
+    'local',
+    'shgo',
+  ];
+
   Future getPercents() async {
     String payload = jsonEncode({
       "cmyk_cpnts": rgbs.map((e) => toCmyk01(e)).toList(),
       "cmyk_A": toCmyk01(A),
+      "algo": supportedAlgos[2]
     });
 
     var resp = await http.post(Uri.parse('$apiUrl/solve_eq'),

@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify
 from flask_compress import Compress
 from flask_cors import cross_origin
-from scipy.optimize import minimize, Bounds, dual_annealing, least_squares, shgo, differential_evolution
+from scipy.optimize import minimize, dual_annealing, shgo
 import numpy as np
 
 app = Flask(__name__, static_folder='web', static_url_path='')
+
+app.config['COMPRESS_MIMETYPES'] = ['text/html', 'text/css', 'text/xml', 
+                                    'application/json',
+                                    'application/javascript', 'font/ttf']
 
 Compress(app)
 
@@ -45,8 +49,6 @@ def solve_eq():
         r = minimize(loss, p0, bounds=bounds)
     elif algo == 'shgo':
         r = shgo(loss, bounds=bounds)
-    elif algo == 'differential_evolution':
-        r = differential_evolution(loss, bounds=bounds)
 
     r.x = r.x / (r.x.sum() + 1e-3)
 
