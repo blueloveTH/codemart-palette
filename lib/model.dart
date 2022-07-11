@@ -72,7 +72,7 @@ class ColorMixModel {
     String payload = jsonEncode({
       "cmyk_cpnts": rgbs.map((e) => toCmyk01(e)).toList(),
       "cmyk_A": toCmyk01(A),
-      "algo": supportedAlgos[2]
+      "algo": supportedAlgos.first
     });
 
     var resp = await http.post(Uri.parse('$apiUrl/solve_eq'),
