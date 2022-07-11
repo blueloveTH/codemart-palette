@@ -9,6 +9,25 @@ import 'package:http/http.dart' as http;
 import 'package:palette/message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class CpntModel {
+  bool enabled = true;
+  Color color;
+  double percent = 1.0;
+
+  CpntModel(this.color);
+
+  Map<String, dynamic> toJson() => {
+        'enabled': enabled,
+        'color': color.value,
+        'percent': percent,
+      };
+
+  CpntModel.fromJson(Map<String, dynamic> json)
+      : enabled = json['enabled'],
+        color = Color(json['color']),
+        percent = json['percent'];
+}
+
 class ColorMixModel {
   static ColorMixModel? _instance;
   static ColorMixModel get instance => _instance!;
@@ -34,16 +53,19 @@ class ColorMixModel {
   }
 
   // saved fields
-  List<Color> rgbs = cpntLabels.map((e) => Colors.black).toList();
-  List<double> cachedPercents = cpntLabels.map((e) => 1.0).toList();
+  List<CpntModel> rgbs = [
+    for (int i = 0; i < 5; i++) CpntModel(Colors.black),
+  ];
+
   Color A = Colors.black;
   Color B = Colors.black;
+  List<double> scales = [1.0, 0.12, 0.08];
   List<Color> colorDB = [Colors.white, Colors.black];
 
   Color getColor(String key) {
     if (key == 'A') return A;
     if (key == 'B') return B;
-    return rgbs[int.parse(key)];
+    return rgbs[int.parse(key)].color;
   }
 
   List<int> chromaticAberration() {
@@ -54,7 +76,7 @@ class ColorMixModel {
     if (key == 'A') {
       A = value;
     } else {
-      rgbs[int.parse(key)] = value;
+      rgbs[int.parse(key)].color = value;
     }
   }
 
@@ -68,12 +90,23 @@ class ColorMixModel {
     'shgo',
   ];
 
-  Future getPercents() async {
+  Future getPercents({required int algoIndex}) async {
+    if (rgbs.where((e) => e.enabled).length < 2) {
+      message("至少要有两个选择的颜色");
+      return;
+    }
+
     String payload = jsonEncode({
-      "cmyk_cpnts": rgbs.map((e) => toCmyk01(e)).toList(),
+      "cmyk_cpnts":
+          rgbs.where((e) => e.enabled).map((e) => toCmyk01(e.color)).toList(),
       "cmyk_A": toCmyk01(A),
-      "algo": supportedAlgos.first
+      "algo": supportedAlgos[algoIndex]
     });
+
+    // print payload if debug mode
+    if (kDebugMode) {
+      print(payload);
+    }
 
     var resp = await http.post(Uri.parse('$apiUrl/solve_eq'),
         body: payload, headers: {"content-type": "application/json"});
@@ -82,19 +115,30 @@ class ColorMixModel {
       return;
     }
     var data = jsonDecode(resp.body);
-    cachedPercents = data['r.x'].cast<double>();
+    var rX = data['r.x'].cast<double>();
+
+    for (int i = 0; i < rgbs.length; i++) {
+      if (rgbs[i].enabled) {
+        rgbs[i].percent = rX[i];
+      } else {
+        rgbs[i].percent = 0;
+      }
+    }
     B = CmykColor.fromList(
             data['mixed'].map((e) => e * 100).toList().cast<num>())
         .toColor();
   }
 
+  static const double version = 3.2;
+
   Future<String> saveJson() async {
     String data = jsonEncode({
       "A": A.value,
       "B": B.value,
-      "rgbs": rgbs.map((e) => e.value).toList(),
-      "cachedPercents": cachedPercents,
+      "rgbs": rgbs,
+      "scales": scales,
       "colorDB": colorDB.map((e) => e.value).toList(),
+      "version": version,
     });
 
     var prefs = await SharedPreferences.getInstance();
@@ -105,10 +149,17 @@ class ColorMixModel {
   Future loadJson(String? data) async {
     if (data == null) return;
     var json = jsonDecode(data);
+    if (version != json['version']) {
+      message("版本不匹配，无法加载");
+      await SharedPreferences.getInstance().then((value) => value.clear());
+      return;
+    }
     A = Color(json['A']);
     B = Color(json['B']);
-    rgbs = json['rgbs'].map<Color>((e) => Color(e)).toList();
-    cachedPercents = json['cachedPercents'].cast<double>();
+    scales = json['scales'].cast<double>();
+    rgbs = (json['rgbs'] as List)
+        .map<CpntModel>((e) => CpntModel.fromJson(e))
+        .toList();
     colorDB = json['colorDB'].map<Color>((e) => Color(e)).toList();
   }
 

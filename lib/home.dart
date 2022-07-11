@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:palette/message.dart';
 import 'package:palette/model.dart';
-import 'package:palette/config.dart';
 import 'package:palette/cpnt.dart';
 import 'package:palette/loading.dart';
 
@@ -25,79 +24,199 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  Widget buildColorCpnts(BuildContext context) {
-    double size = 64;
+  Widget buildPercent(double size, int i, double scale) {
+    return Expanded(
+      child: Container(
+        height: size * 0.8,
+        //width: size * 1.4,
+        alignment: Alignment.centerLeft,
+        padding: EdgeInsets.all(4),
+        margin: EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          border: Border.all(),
+        ),
+        child: Text(
+          (ColorMixModel.instance.rgbs[i].percent * 100 * scale)
+                  .toStringAsFixed(2) +
+              " %",
+          style: TextStyle(fontSize: 14),
+        ),
+      ),
+    );
+  }
 
-    return Column(
+  Widget buildScales(double size) {
+    return Row(
       children: [
-        for (int i = 0; i < cpntLabels.length; i++)
-          Row(
+        Opacity(
+          opacity: 0,
+          child: Row(
             children: [
-              ColorCpnt(
-                i.toString(),
-                size: size,
-                label: cpntLabels[i],
-              ),
-              const SizedBox(
-                width: 8,
+              Checkbox(
+                value: false,
+                onChanged: null,
+                visualDensity: VisualDensity(horizontal: -4),
               ),
               Container(
-                height: size * 0.8,
-                width: size * 1.5,
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  border: Border.all(),
-                ),
-                child: Text(
-                  (ColorMixModel.instance.cachedPercents[i] * 100)
-                          .toStringAsFixed(2) +
-                      " %",
-                  style: TextStyle(fontSize: 17),
-                ),
+                width: cpntSize,
+                height: cpntSize,
+                margin: EdgeInsets.all(cpntSize / 8),
+              ),
+              const SizedBox(
+                width: 4,
               ),
             ],
+          ),
+        ),
+        for (int i = 0; i < ColorMixModel.instance.scales.length; i++)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: TextField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(suffix: Text("%")),
+                onSubmitted: (dynamic value) {
+                  value = double.parse(value);
+                  if (value <= 0 || value > 100) return;
+                  setState(() {
+                    ColorMixModel.instance.scales[i] = value / 100;
+                  });
+                },
+                controller: TextEditingController(
+                  text: (ColorMixModel.instance.scales[i] * 100)
+                      .toStringAsFixed(2),
+                ),
+              ),
+            ),
           ),
       ],
     );
   }
 
-  Widget buildMixedColor(BuildContext context) {
+  final double cpntSize = 50;
+
+  Widget buildColorCpnts(BuildContext context) {
+    double size = cpntSize;
+
     return Column(
       children: [
-        ColorCpnt(
-          "B",
-          size: 100,
-          label: "B",
-          enabled: false,
-        ),
-        Text("RGB色差：\n" +
-            ColorMixModel.instance.chromaticAberration().toString()),
+        for (int i = 0; i < ColorMixModel.instance.rgbs.length; i++)
+          Row(
+            children: [
+              Checkbox(
+                value: ColorMixModel.instance.rgbs[i].enabled,
+                onChanged: (val) {
+                  setState(() {
+                    ColorMixModel.instance.rgbs[i].enabled = val == true;
+                  });
+                },
+                visualDensity: VisualDensity(horizontal: -4),
+              ),
+              ColorCpnt(
+                i.toString(),
+                size: size,
+                label: i.toString(),
+              ),
+              const SizedBox(
+                width: 4,
+              ),
+              for (double scale in ColorMixModel.instance.scales)
+                buildPercent(size, i, scale),
+            ],
+          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton.icon(
+                onPressed: () {
+                  if (ColorMixModel.instance.rgbs.length >= 16) return;
+                  setState(() {
+                    ColorMixModel.instance.rgbs.add(CpntModel(Colors.black));
+                  });
+                },
+                icon: Icon(Icons.add),
+                label: Text("添加")),
+            TextButton.icon(
+                onPressed: () {
+                  if (ColorMixModel.instance.rgbs.length <= 2) return;
+                  setState(() {
+                    ColorMixModel.instance.rgbs.removeLast();
+                  });
+                },
+                icon: Icon(
+                  Icons.remove,
+                  color: Colors.red,
+                ),
+                label: Text(
+                  "删除",
+                  style: TextStyle(color: Colors.red),
+                )),
+          ],
+        )
       ],
     );
   }
 
+  Widget buildMixedColor(BuildContext context) {
+    return ColorCpnt(
+      "B",
+      size: 64,
+      label: "B",
+      enabled: false,
+    );
+  }
+
+  void calcPercents(int algoIndex) async {
+    showLoadingDialog(context);
+    try {
+      await ColorMixModel.instance.getPercents(algoIndex: algoIndex);
+      setState(() {});
+    } finally {
+      Navigator.pop(context);
+    }
+  }
+
   Widget buildTargetColor(BuildContext context) {
-    return Column(
-      children: [
-        ColorCpnt(
-          "A",
-          size: 100,
-          label: "A",
-        ),
-        ElevatedButton(
-            onPressed: () async {
-              showLoadingDialog(context);
-              try {
-                await ColorMixModel.instance.getPercents();
-                setState(() {});
-              } finally {
-                Navigator.pop(context);
-              }
-            },
-            child: Text("计算配比")),
-        buildMixedColor(context),
-      ],
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(8)),
+      padding: EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.all(8),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              buildMixedColor(context),
+              Column(
+                children: [
+                  Icon(Icons.arrow_right_alt, size: 32),
+                  Text("ΔRGB: " +
+                      ColorMixModel.instance.chromaticAberration().join(",")),
+                ],
+              ),
+              ColorCpnt(
+                "A",
+                size: 64,
+                label: "A",
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                  onPressed: () => calcPercents(2), child: Text("快速计算")),
+              SizedBox(
+                width: 8,
+              ),
+              ElevatedButton(
+                  onPressed: () => calcPercents(0), child: Text("精确计算")),
+            ],
+          )
+        ],
+      ),
     );
   }
 
@@ -131,15 +250,16 @@ class HomePageState extends State<HomePage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: ListView(
+        child: Column(
           children: [
-            Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  buildColorCpnts(context),
-                  buildTargetColor(context),
-                ]),
+            buildTargetColor(context),
+            Align(
+                alignment: Alignment.centerRight, child: buildScales(cpntSize)),
+            Expanded(
+              child: SingleChildScrollView(
+                child: buildColorCpnts(context),
+              ),
+            )
           ],
         ),
       ),
