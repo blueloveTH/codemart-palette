@@ -8,7 +8,7 @@ app = Flask(__name__, static_folder='web', static_url_path='')
 
 app.config['COMPRESS_MIMETYPES'] = ['text/html', 'text/css', 'text/xml', 
                                     'application/json',
-                                    'application/javascript', 'font/ttf']
+                                    'application/javascript', 'font/ttf', 'font/otf', 'application/octet-stream']
 
 Compress(app)
 
