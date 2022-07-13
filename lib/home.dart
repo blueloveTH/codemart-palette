@@ -207,7 +207,7 @@ class HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                  onPressed: () => calcPercents(2), child: Text("快速计算")),
+                  onPressed: () => calcPercents(1), child: Text("快速计算")),
               SizedBox(
                 width: 8,
               ),
@@ -234,9 +234,10 @@ class HomePageState extends State<HomePage> {
                   message("剪贴板没有数据");
                   return;
                 }
-                await ColorMixModel.instance.loadJson(value.text);
-                message("导入成功");
-                setState(() {});
+                if (await ColorMixModel.instance.loadJson(value.text)) {
+                  message("导入成功");
+                  setState(() {});
+                }
               },
               child: Text("导入")),
           TextButton(

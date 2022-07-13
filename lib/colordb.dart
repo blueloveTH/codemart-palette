@@ -75,6 +75,10 @@ class ColorDBState extends State<ColorDB> {
         actions: [
           TextButton(
               onPressed: () {
+                if (ColorMixModel.instance.colorDB.length <= 1) {
+                  message("无法删除，至少需保留一种颜色");
+                  return;
+                }
                 setState(() {
                   colorDB.remove(selectedColor);
                 });

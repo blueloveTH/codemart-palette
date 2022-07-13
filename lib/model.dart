@@ -117,9 +117,10 @@ class ColorMixModel {
     var data = jsonDecode(resp.body);
     var rX = data['r.x'].cast<double>();
 
+    int j = 0;
     for (int i = 0; i < rgbs.length; i++) {
       if (rgbs[i].enabled) {
-        rgbs[i].percent = rX[i];
+        rgbs[i].percent = rX[j++];
       } else {
         rgbs[i].percent = 0;
       }
@@ -146,13 +147,23 @@ class ColorMixModel {
     return data;
   }
 
-  Future loadJson(String? data) async {
-    if (data == null) return;
-    var json = jsonDecode(data);
+  Future<bool> loadJson(String? data) async {
+    if (data == null) return false;
+
+    Map? json;
+    try {
+      json = jsonDecode(data);
+      if (json?['A'] == null) throw Exception();
+    } catch (e) {
+      message("数据格式错误");
+      return false;
+    }
+    json = json!;
+
     if (version != json['version']) {
       message("版本不匹配，无法加载");
       await SharedPreferences.getInstance().then((value) => value.clear());
-      return;
+      return false;
     }
     A = Color(json['A']);
     B = Color(json['B']);
@@ -161,42 +172,6 @@ class ColorMixModel {
         .map<CpntModel>((e) => CpntModel.fromJson(e))
         .toList();
     colorDB = json['colorDB'].map<Color>((e) => Color(e)).toList();
+    return true;
   }
-
-  /*
-  int get cpntLength {
-    assert(rgbs.length == percent.length);
-    return rgbs.length;
-  }
-
-    List<double> getNormalizedPercent() {
-    double sum = percent.reduce((a, b) => a + b);
-    sum += 0.01; // avoid divide by zero error
-    return percent.map((e) => e / sum).toList();
-  }
-  
-  RgbColor get mixedColor {
-    List<double> normalizedPercent = getNormalizedPercent();
-
-    num c = 0;
-    num m = 0;
-    num y = 0;
-    num k = 0;
-
-    for (int i = 0; i < cpntLength; i++) {
-      CmykColor e = rgbs[i].toCmykColor();
-      double p = normalizedPercent[i];
-      c += e.cyan * p;
-      m += e.magenta * p;
-      y += e.yellow * p;
-      k += e.black * p;
-    }
-
-    c = min(100, c);
-    m = min(100, m);
-    y = min(100, y);
-    k = min(100, k);
-
-    return CmykColor(c, m, y, k).toRgbColor();
-  }*/
 }
