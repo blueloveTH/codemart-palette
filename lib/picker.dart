@@ -5,6 +5,8 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:palette/colordb.dart';
+import 'package:palette/message.dart';
+import 'package:palette/model.dart';
 import 'package:provider/provider.dart';
 
 class MultiCpntField extends StatelessWidget {
@@ -13,9 +15,10 @@ class MultiCpntField extends StatelessWidget {
   final List<TextEditingController> controllers = [];
   final bool fixedWidth;
   final int maxLength;
+  final TextInputType keyboardType;
 
   final void Function(MultiCpntField field) onEditComplete;
-  final Color Function(MultiCpntField field) toColor;
+  final Color? Function(MultiCpntField field) toColor;
 
   int get fieldLength => values.length;
 
@@ -28,6 +31,7 @@ class MultiCpntField extends StatelessWidget {
       {this.fixedWidth = false,
       required this.toColor,
       required this.onEditComplete,
+      this.keyboardType = TextInputType.number,
       this.maxLength = 3}) {
     for (int i = 0; i < fieldLength; i++) {
       String text = values[i].toString();
@@ -55,7 +59,7 @@ class MultiCpntField extends StatelessWidget {
                 controller: controllers[i],
                 maxLength: maxLength,
                 enableIMEPersonalizedLearning: false,
-                keyboardType: TextInputType.number,
+                keyboardType: keyboardType,
                 autocorrect: false,
                 style: TextStyle(fontSize: 14),
                 padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -76,7 +80,11 @@ class PickerValueTable extends StatelessWidget {
 
   void refreshColor(MultiCpntField field) {
     try {
-      Color c = field.toColor(field);
+      Color? c = field.toColor(field);
+      if (c == null) {
+        message("无法找到这个颜色");
+        return;
+      }
       onColorEdit?.call(c);
       // ignore: empty_catches
     } catch (e) {}
@@ -114,9 +122,19 @@ class PickerValueTable extends StatelessWidget {
           [rgb.hex],
           fixedWidth: true,
           maxLength: 7,
-          toColor: (field) => RgbColor.fromHex(field.getText(0)),
+          toColor: (field) => RgbColor.fromHex(field.getText(0).trim()),
           onEditComplete: refreshColor,
         ),
+        MultiCpntField(
+          "色号",
+          [ColorMixModel.instance.getKeyByColor(rgb)],
+          fixedWidth: true,
+          maxLength: 10,
+          toColor: (field) =>
+              ColorMixModel.instance.getColorByKey(field.getText(0).trim()),
+          onEditComplete: refreshColor,
+          keyboardType: TextInputType.text,
+        )
       ],
     );
   }
@@ -138,7 +156,8 @@ class PickerDialogState extends State<PickerDialog> {
 
   Future<Color?> pickColorFromImage(
       BuildContext context, ImageSource src) async {
-    XFile? file = await ImagePicker().pickImage(source: src, maxHeight: 600, maxWidth: 300);
+    XFile? file = await ImagePicker()
+        .pickImage(source: src, maxHeight: 600, maxWidth: 300);
     if (file == null) return null;
     var image = img.decodeImage(await file.readAsBytes());
     if (image == null) return null;
@@ -223,8 +242,12 @@ class PickerDialogState extends State<PickerDialog> {
                         icon: Icon(Icons.camera_alt_outlined)),
                     IconButton(
                         onPressed: () async {
-                          Color? color = await Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => ColorDB(currentColor: currentColor,)));
+                          Color? color = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => ColorDB(
+                                        currentColor: currentColor,
+                                      )));
                           if (color != null) {
                             textController.text = color.toRgbColor().hex;
                           }

@@ -29,7 +29,7 @@ class HomePageState extends State<HomePage> {
       child: Container(
         height: size * 0.8,
         alignment: Alignment.centerLeft,
-        padding: EdgeInsets.all(4),
+        padding: EdgeInsets.all(2),
         margin: EdgeInsets.all(2),
         decoration: BoxDecoration(
           border: Border.all(),
@@ -73,6 +73,7 @@ class HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(4),
               child: TextField(
                 keyboardType: TextInputType.number,
+                style: TextStyle(fontSize: 14),
                 decoration: InputDecoration(suffix: Text("%")),
                 onSubmitted: (dynamic value) {
                   value = double.parse(value);

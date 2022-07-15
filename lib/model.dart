@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class CpntModel {
   bool enabled = true;
   Color color;
-  double percent = 1.0;
+  double percent = 0.0;
 
   CpntModel(this.color);
 
@@ -40,8 +40,9 @@ class ColorMixModel {
     if (initialized) throw Exception("Already initialized");
     _instance = ColorMixModel._();
 
-    var pingResp = await http.get(Uri.parse('$apiUrl/ping'));
-    assert(pingResp.statusCode == 200 && pingResp.body == 'pong');
+    http.get(Uri.parse('$apiUrl/ping')).then((pingResp) {
+      assert(pingResp.statusCode == 200 && pingResp.body == 'pong');
+    });
 
     var prefs = await SharedPreferences.getInstance();
     var data = prefs.getString('data');
@@ -63,7 +64,20 @@ class ColorMixModel {
   Color A = Colors.black;
   Color B = Colors.black;
   List<double> scales = [1.0, 0.12, 0.08];
-  List<Color> colorDB = [Colors.white, Colors.black];
+  Map<int, String> colorDB = {
+    Colors.white.value: noColorKey,
+    Colors.black.value: noColorKey
+  };
+
+  Color? getColorByKey(String key) {
+    if (key == noColorKey || key.isEmpty) return null;
+    var res = colorDB.keys.where((c) => colorDB[c] == key);
+    return res.isEmpty ? null : Color(res.first);
+  }
+
+  String getKeyByColor(Color color) {
+    return colorDB[color.value] ?? noColorKey;
+  }
 
   Color getColor(String key) {
     if (key == 'A') return A;
@@ -133,7 +147,7 @@ class ColorMixModel {
         .toColor();
   }
 
-  static const double version = 3.2;
+  static const double version = 5.4;
 
   Future<String> saveJson() async {
     String data = jsonEncode({
@@ -141,8 +155,8 @@ class ColorMixModel {
       "B": B.value,
       "rgbs": rgbs,
       "scales": scales,
-      "colorDB": colorDB.map((e) => e.value).toList(),
       "version": version,
+      "colorDB": colorDB.map((key, value) => MapEntry(key.toString(), value)),
     });
 
     var prefs = await SharedPreferences.getInstance();
@@ -174,7 +188,8 @@ class ColorMixModel {
     rgbs = (json['rgbs'] as List)
         .map<CpntModel>((e) => CpntModel.fromJson(e))
         .toList();
-    colorDB = json['colorDB'].map<Color>((e) => Color(e)).toList();
+    colorDB = json['colorDB'].map<int, String>(
+        (key, value) => MapEntry(int.parse(key), value.toString()));
     return true;
   }
 }
