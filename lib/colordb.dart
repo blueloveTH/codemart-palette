@@ -114,7 +114,7 @@ class ColorDBState extends State<ColorDB> {
                   return;
                 }
                 setState(() {
-                  colorDB.remove(selectedColor);
+                  colorDB.remove(selectedColor.value);
                 });
               },
               child: Text("删除")),
