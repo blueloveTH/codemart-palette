@@ -40,6 +40,9 @@ class ColorMixModel {
     if (initialized) throw Exception("Already initialized");
     _instance = ColorMixModel._();
 
+    var pingResp = await http.get(Uri.parse('$apiUrl/ping'));
+    assert(pingResp.statusCode == 200 && pingResp.body == 'pong');
+
     var prefs = await SharedPreferences.getInstance();
     var data = prefs.getString('data');
     await instance.loadJson(data);

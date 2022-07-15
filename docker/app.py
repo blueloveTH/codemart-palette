@@ -16,6 +16,10 @@ Compress(app)
 def index():
     return app.send_static_file('index.html')
 
+@app.route("/ping")
+def hello():
+    return "pong"
+
 def normalizeCmyk(cmyk) -> np.ndarray:
     if not isinstance(cmyk, np.ndarray):
         cmyk = np.array(cmyk)

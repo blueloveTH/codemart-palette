@@ -28,7 +28,6 @@ class HomePageState extends State<HomePage> {
     return Expanded(
       child: Container(
         height: size * 0.8,
-        //width: size * 1.4,
         alignment: Alignment.centerLeft,
         padding: EdgeInsets.all(4),
         margin: EdgeInsets.all(2),
@@ -89,6 +88,14 @@ class HomePageState extends State<HomePage> {
               ),
             ),
           ),
+        Opacity(
+          opacity: 0,
+          child: IconButton(
+            onPressed: null,
+            visualDensity: VisualDensity(horizontal: -4),
+            icon: Icon(Icons.add),
+          ),
+        )
       ],
     );
   }
@@ -122,37 +129,48 @@ class HomePageState extends State<HomePage> {
               ),
               for (double scale in ColorMixModel.instance.scales)
                 buildPercent(size, i, scale),
-            ],
-          ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton.icon(
-                onPressed: () {
-                  if (ColorMixModel.instance.rgbs.length >= 16) return;
-                  setState(() {
-                    ColorMixModel.instance.rgbs.add(CpntModel(Colors.black));
-                  });
-                },
-                icon: Icon(Icons.add),
-                label: Text("添加")),
-            TextButton.icon(
-                onPressed: () {
+              IconButton(
+                visualDensity: VisualDensity(horizontal: -4),
+                onPressed: () async {
                   if (ColorMixModel.instance.rgbs.length <= 2) return;
-                  setState(() {
-                    ColorMixModel.instance.rgbs.removeLast();
-                  });
+
+                  if (true ==
+                      await showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text("确认删除此条目"),
+                          actions: [
+                            TextButton(
+                              child: Text("取消"),
+                              onPressed: () => Navigator.pop(context, false),
+                            ),
+                            TextButton(
+                              child: Text("确定"),
+                              onPressed: () => Navigator.pop(context, true),
+                            ),
+                          ],
+                        ),
+                      )) {
+                    ColorMixModel.instance.rgbs.removeAt(i);
+                    setState(() {});
+                  }
                 },
                 icon: Icon(
-                  Icons.remove,
+                  Icons.delete_forever_outlined,
                   color: Colors.red,
                 ),
-                label: Text(
-                  "删除",
-                  style: TextStyle(color: Colors.red),
-                )),
-          ],
-        )
+              ),
+            ],
+          ),
+        TextButton.icon(
+            onPressed: () {
+              if (ColorMixModel.instance.rgbs.length >= 16) return;
+              setState(() {
+                ColorMixModel.instance.rgbs.add(CpntModel(Colors.black));
+              });
+            },
+            icon: Icon(Icons.add),
+            label: Text("添加"))
       ],
     );
   }

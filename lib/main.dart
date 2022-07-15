@@ -19,10 +19,6 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: HomePage(),
-      /*supportedLocales: [
-        const Locale('zh', 'CN'),
-        const Locale('en', 'US'),
-      ],*/
     );
   }
 }
