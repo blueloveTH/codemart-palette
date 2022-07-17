@@ -4,12 +4,12 @@ import 'package:palette/picker.dart';
 
 class ColorCpnt extends StatefulWidget {
   final double size;
-  final String label;
+  final String? label;
   final String dataKey;
   final bool enabled;
 
   const ColorCpnt(this.dataKey,
-      {Key? key, required this.size, required this.label, this.enabled = true})
+      {Key? key, required this.size, this.label, this.enabled = true})
       : super(key: key);
 
   @override
@@ -50,7 +50,7 @@ class ColorCpntState extends State<ColorCpnt> {
             borderRadius: BorderRadius.circular(8)),
         child: Center(
             child: Text(
-          widget.label,
+          widget.label ?? ColorMixModel.instance.getKeyByColor(color),
           style: TextStyle(
               color:
                   color.computeLuminance() > 0.5 ? Colors.black : Colors.white),

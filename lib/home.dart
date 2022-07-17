@@ -123,7 +123,6 @@ class HomePageState extends State<HomePage> {
               ColorCpnt(
                 i.toString(),
                 size: size,
-                label: i.toString(),
               ),
               const SizedBox(
                 width: 4,
