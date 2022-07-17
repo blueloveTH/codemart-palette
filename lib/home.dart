@@ -47,25 +47,31 @@ class HomePageState extends State<HomePage> {
   Widget buildScales(double size) {
     return Row(
       children: [
-        Opacity(
-          opacity: 0,
-          child: Row(
-            children: [
-              Checkbox(
-                value: false,
-                onChanged: null,
-                visualDensity: VisualDensity(horizontal: -4),
-              ),
-              Container(
-                width: cpntSize,
-                height: cpntSize,
-                margin: EdgeInsets.all(cpntSize / 8),
-              ),
-              const SizedBox(
-                width: 4,
-              ),
-            ],
-          ),
+        Row(
+          children: [
+            Checkbox(
+              value: ColorMixModel.instance.rgbs
+                  .every((element) => element.enabled),
+              onChanged: (_) {
+                bool val = ColorMixModel.instance.rgbs
+                    .every((element) => element.enabled);
+                setState(() {
+                  for (var e in ColorMixModel.instance.rgbs) {
+                    e.enabled = !val;
+                  }
+                });
+              },
+              visualDensity: VisualDensity(horizontal: -4),
+            ),
+            Container(
+              width: cpntSize,
+              height: cpntSize,
+              margin: EdgeInsets.all(cpntSize / 8),
+            ),
+            const SizedBox(
+              width: 4,
+            ),
+          ],
         ),
         for (int i = 0; i < ColorMixModel.instance.scales.length; i++)
           Expanded(
