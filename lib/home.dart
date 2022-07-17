@@ -165,7 +165,7 @@ class HomePageState extends State<HomePage> {
           ),
         TextButton.icon(
             onPressed: () {
-              if (ColorMixModel.instance.rgbs.length >= 16) return;
+              if (ColorMixModel.instance.rgbs.length >= 999) return;
               setState(() {
                 ColorMixModel.instance.rgbs.add(CpntModel(Colors.black));
               });

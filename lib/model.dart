@@ -128,7 +128,11 @@ class ColorMixModel {
     var resp = await http.post(Uri.parse('$apiUrl/solve_eq'),
         body: payload, headers: {"content-type": "application/json"});
     if (resp.statusCode != 200) {
-      message("网络错误：${resp.statusCode}");
+      if (resp.statusCode == 502) {
+        message("计算超时");
+      } else {
+        message("网络错误：${resp.statusCode}");
+      }
       return;
     }
     var data = jsonDecode(resp.body);
