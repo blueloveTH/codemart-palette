@@ -48,7 +48,7 @@ class ColorMixModel {
     var data = prefs.getString('data');
     await instance.loadJson(data);
 
-    Timer.periodic(Duration(seconds: 25), (timer) async {
+    Timer.periodic(Duration(seconds: 30), (timer) async {
       await instance.saveJson();
       if (kDebugMode) {
         print("保存成功");
